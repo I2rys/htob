@@ -2,7 +2,6 @@
 <h4 align="center">Website HTTP & TLS observatory</h4>
 <p align="center">
 	<a href="https://github.com/I2rys/HTOB/blob/main/LICENSE"><img src="https://img.shields.io/github/license/I2rys/HTOB?style=flat-square"></img></a>
-	<a href="https://github.com/I2rys/HTOB"><img src="https://bettercodehub.com/edge/badge/I2rys/HTOB?branch=main"></a>
 	<a href="https://github.com/I2rys/HTOB/issues"><img src="https://img.shields.io/github/issues/I2rys/HTOB.svg"></img></a>
 	<a href="https://github.com/I2rys/HTOB"><img src="https://img.shields.io/badge/version-1.0.0-orange"></img></a>
 	<a href="https://nodejs.org/"><img src="https://img.shields.io/badge/-Nodejs-green?style=flat-square&logo=Node.js"></img></a>
