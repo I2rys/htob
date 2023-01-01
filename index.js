@@ -1,110 +1,64 @@
+"use strict";
+
 //Dependencies
-const JSON_Hood = require("json-hood")
-const Request = require("request")
-const Chalk = require("chalk")
+const jsonHood = require("json-hood")
+const request = require("request")
+const chalk = require("chalk")
 
-//Variables
-const Self_Args = process.argv.slice(2)
+// Variables
+const args = process.argv.slice(2)
 
-//Main
-if(Self_Args.length == 0){
-    console.log(Chalk.magentaBright(`========================================
-    ██   ██ ████████  ██████  ██████  
-    ██   ██    ██    ██    ██ ██   ██ 
-    ███████    ██    ██    ██ ██████  
-    ██   ██    ██    ██    ██ ██   ██ 
-    ██   ██    ██     ██████  ██████  
-========================================`))
-    console.log(Chalk.yellowBright(`node index.js <http/tls> <domain>
-Example: node index.js http www.google.com
+// Main
+if(!args.length) return console.log(chalk.yellowBright("usage: node index.js <http/tls> <domain>"))
 
---- http/tls ---
-http | Scan the website HTTP.
-tls | Scan the website TLS.
+args[0] = args[0].toLowerCase()
 
---- domain ---
-domain | The website domain.
-    `))
-    process.exit()
-}
+if(!args[1]) return console.log(`${chalk.blueBright("[") + chalk.redBright("ERROR") + chalk.blueBright("]")} Invalid url.`)
 
-if(Self_Args[0] == ""){
-    console.log(`${Chalk.blueBright("[") + Chalk.redBright("ERROR") + Chalk.blueBright("]")} Invalid argument, make sure to use http/tls.`)
-    process.exit()
-}
+if(args[0] === "http"){
+    console.log(`${chalk.blueBright("[") + chalk.yellowBright("INFO") + chalk.blueBright("]")} Scanning the website HTTP please wait(This might take a long time, depends).`)
 
-Self_Args[0] = Self_Args[0].toLowerCase()
-
-if(Self_Args[1] == ""){
-    console.log(`${Chalk.blueBright("[") + Chalk.redBright("ERROR") + Chalk.blueBright("]")} Invalid url.`)
-    process.exit()
-}
-
-if(Self_Args[0] == "http"){
-    console.log(`${Chalk.blueBright("[") + Chalk.yellowBright("INFO") + Chalk.blueBright("]")} Scanning the website HTTP please wait(This might take a long time, depends).`)
-
-    Request.post(`https://http-observatory.security.mozilla.org/api/v1/analyze?host=${Self_Args[1]}&hidden=true&rescan=true`, function(err, res, body){
-        if(err){
-            console.log(`${Chalk.blueBright("[") + Chalk.redBright("ERROR") + Chalk.blueBright("]")} Something went wrong while scanning the website HTTP.`)
-            process.exit()
-        }
+    request.post(`https://http-observatory.security.mozilla.org/api/v1/analyze?host=${args[1]}&hidden=true&rescan=true`, function(err, res, body){
+        if(err) return console.log(`${chalk.blueBright("[") + chalk.redBright("ERROR") + chalk.blueBright("]")} Something went wrong while scanning the website HTTP.`)
 
         body = JSON.parse(body)
 
-        if(body.state != "FINISHED"){
-            Until_Finished()
-            function Until_Finished(){
+        if(body.state !== "FINISHED"){
+            function untilFinished(){
                 setTimeout(function(){
-                    Request.post(`https://http-observatory.security.mozilla.org/api/v1/analyze?host=${Self_Args[1]}&hidden=true&rescan=true`, function(err, res, body){
-                        if(err){
-                            console.log(`${Chalk.blueBright("[") + Chalk.redBright("ERROR") + Chalk.blueBright("]")} Something went wrong while scanning the website HTTP.`)
-                            process.exit()
-                        }
+                    request.post(`https://http-observatory.security.mozilla.org/api/v1/analyze?host=${args[1]}&hidden=true&rescan=true`, function(err, res, body){
+                        if(err) return console.log(`${chalk.blueBright("[") + chalk.redBright("ERROR") + chalk.blueBright("]")} Something went wrong while scanning the website HTTP.`)
 
-                        if(body.indexOf("FINISHED") == -1){
-                            Until_Finished()
-                            return
-                        }
+                        if(!body.match("FINISHED")) return untilFinished()
             
-                        JSON_Hood.printJSONasArrowDiagram(body)
-                        process.exit()
+                        jsonHood.printJSONasArrowDiagram(body)
                     })
                 }, 1000)
             }
+
+            untilFinished()
         }else{
-            JSON_Hood.printJSONasArrowDiagram(body)
-            process.exit()
+            jsonHood.printJSONasArrowDiagram(body)
         }
     })
-}else if(Self_Args[0] == "tls"){
-    console.log(`${Chalk.blueBright("[") + Chalk.yellowBright("INFO") + Chalk.blueBright("]")} Scanning the website TLS please wait(This might take a long time, depends).`)
+}else if(args[0] === "tls"){
+    console.log(`${chalk.blueBright("[") + chalk.yellowBright("INFO") + chalk.blueBright("]")} Scanning the website TLS please wait(This might take a long time, depends).`)
     
-    Request.post(`https://tls-observatory.services.mozilla.com/api/v1/scan?target=${Self_Args[1]}&hidden=true&rescan=true`, function(err, res, body){
-        if(err){
-            console.log(`${Chalk.blueBright("[") + Chalk.redBright("ERROR") + Chalk.blueBright("]")} Something went wrong while scanning the website TLS.`)
-            process.exit()
-        }
+    request.post(`https://tls-observatory.services.mozilla.com/api/v1/scan?target=${args[1]}&hidden=true&rescan=true`, function(err, res, body){
+        if(err) return console.log(`${chalk.blueBright("[") + chalk.redBright("ERROR") + chalk.blueBright("]")} Something went wrong while scanning the website TLS.`)
 
         body = JSON.parse(body)
 
-        Request(`https://tls-observatory.services.mozilla.com/api/v1/results?id=${body.scan_id}`, function(err, res, body){
-            if(err){
-                console.log(`${Chalk.blueBright("[") + Chalk.redBright("ERROR") + Chalk.blueBright("]")} Something went wrong while scanning the website TLS.`)
-                process.exit()
-            }
+        request(`https://tls-observatory.services.mozilla.com/api/v1/results?id=${body.scan_id}`, function(err, res, body){
+            if(err) return console.log(`${chalk.blueBright("[") + chalk.redBright("ERROR") + chalk.blueBright("]")} Something went wrong while scanning the website TLS.`)
 
-            if(body.indexOf("last") != -1){
-                console.log(`${Chalk.blueBright("[") + Chalk.yellowBright("INFO") + Chalk.blueBright("]")} The API is has a limit in requesting, please try again in a few minutes.`)
-                process.exit()
-            }
+            if(body.match("last")) return console.log(`${chalk.blueBright("[") + chalk.yellowBright("INFO") + chalk.blueBright("]")} The API is has a limit in requesting, please try again in a few minutes.`)
             
             body = JSON.parse(body)
 
-            JSON_Hood.printJSONasArrowDiagram(body)
-            process.exit()
+            jsonHood.printJSONasArrowDiagram(body)
         })
     })
 }else{
-    console.log(`${Chalk.blueBright("[") + Chalk.redBright("ERROR") + Chalk.blueBright("]")} Invalid argument, make sure to use http/tls.`)
-    process.exit()
+    console.log(`${chalk.blueBright("[") + chalk.redBright("ERROR") + chalk.blueBright("]")} Invalid argument, make sure to use http/tls.`)
 }
